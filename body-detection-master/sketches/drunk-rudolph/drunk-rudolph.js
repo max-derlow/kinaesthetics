@@ -21,6 +21,10 @@ let body
 bodies.addEventListener('bodiesDetected', (e) => {
     body = e.detail.bodies.getBodyAt(0)
 })
+//calculate distance between the user and the screen through his/her eyes.
+function f(x) {
+    return -21.6 + (594.6724 - -21.6)/(1 + (x/8.436912)**1.09424);
+}
 
 // draw the video, nose and eyes into the canvas
 function drawCameraIntoCanvas() {
@@ -30,12 +34,13 @@ function drawCameraIntoCanvas() {
   
  // draw nose and eyes
  if (body) {
-    const nose = body.getBodyPart(bodyParts.nose)
-    const leftEye = body.getBodyPart(bodyParts.leftEye)
-    const rightEye = body.getBodyPart(bodyParts.rightEye)
-     let distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftEye, bodyParts.rightEye));
+     const nose = body.getBodyPart(bodyParts.nose)
+     const leftEye = body.getBodyPart(bodyParts.leftEye)
+     const rightEye = body.getBodyPart(bodyParts.rightEye)
 
-    // draw nose
+     let distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftEye, bodyParts.rightEye));
+     let cmFromScreen = Math.round(f(distance));
+
     ctx.beginPath();
     ctx.arc(nose.position.x, nose.position.y, 10, 0, 2 * Math.PI);
     ctx.fillStyle = 'red'
@@ -51,6 +56,7 @@ function drawCameraIntoCanvas() {
      ctx.fillStyle = 'red'
      ctx.fill()
      console.log(distance);
+     console.log("distance from screen = " + cmFromScreen + "cm");
      if(nose.position.y >= 300){
          console.log("working");
      }
