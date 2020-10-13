@@ -2,7 +2,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>PoseNet Example</title>
+  <title>Wrist distance</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
@@ -11,14 +11,10 @@
 </head>
 
 <body>
-  <h1>Wrist distance  </h1>
-  <video id="video" width="640" height="480" autoplay ></video>
-  
-  <button onclick="poses.stop()" width="50" height="20"></button>
-  
-  
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <video id="video" width="640" height="480" autoplay style="display: none"></video>
+  <div id="output"></div>
   <script src="wrist-distance.js"></script>
-
 </body>
 
 </html>

@@ -15,8 +15,6 @@ let video = document.getElementById("video");
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-
-
 // Draw the video and noses into the canvas
 function drawCameraIntoCanvas() {
  // Draw the video element into the canvas

@@ -33,6 +33,7 @@ function drawCameraIntoCanvas() {
     const nose = body.getBodyPart(bodyParts.nose)
     const leftEye = body.getBodyPart(bodyParts.leftEye)
     const rightEye = body.getBodyPart(bodyParts.rightEye)
+     let distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftEye, bodyParts.rightEye));
 
     // draw nose
     ctx.beginPath();
@@ -40,9 +41,24 @@ function drawCameraIntoCanvas() {
     ctx.fillStyle = 'red'
     ctx.fill()
 
+     ctx.beginPath();
+     ctx.arc(leftEye.position.x, leftEye.position.y, 10, 0, 2 * Math.PI);
+     ctx.fillStyle = 'red'
+     ctx.fill()
+
+     ctx.beginPath();
+     ctx.arc(rightEye.position.x, rightEye.position.y, 10, 0, 2 * Math.PI);
+     ctx.fillStyle = 'red'
+     ctx.fill()
+     console.log(distance);
+     if(nose.position.y >= 300){
+         console.log("working");
+     }
+
     // left and right eye
-   drawStar(leftEye.position.x, leftEye.position.y, 5, 5, 13, 'yellow')
-   drawStar(rightEye.position.x, rightEye.position.y, 5, 5, 13, 'yellow')
+   //drawStar(leftEye.position.x, leftEye.position.y, 5, 5, 13, 'yellow')
+   //drawStar(rightEye.position.x, rightEye.position.y, 5, 5, 13, 'yellow')
+
  }
   window.requestAnimationFrame(drawCameraIntoCanvas);
 }
