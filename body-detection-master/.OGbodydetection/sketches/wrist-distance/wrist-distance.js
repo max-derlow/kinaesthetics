@@ -6,7 +6,7 @@
 // sets up a bodystream with configuration object
 const bodies = new BodyStream ({
       posenet: posenet,
-      architecture: modelArchitecture.MobileNetV1, //ResNet50
+      architecture: modelArchitecture.MobileNetV1, 
       detectionType: detectionType.singleBody, 
       videoElement: document.getElementById('video'), 
       samplingRate: 250})
@@ -35,7 +35,7 @@ function drawCameraIntoCanvas() {
         // draw circle for left and right wrist
         const leftWrist = body.getBodyPart(bodyParts.leftWrist)
         const rightWrist = body.getBodyPart(bodyParts.rightWrist)
-/*
+
         // draw left wrist
         ctx.beginPath();
         ctx.arc(leftWrist.position.x, leftWrist.position.y, 10, 0, 2 * Math.PI);
@@ -46,11 +46,6 @@ function drawCameraIntoCanvas() {
         ctx.beginPath();
         ctx.arc(rightWrist.position.x, rightWrist.position.y, 10, 0, 2 * Math.PI);
         ctx.fillStyle = 'white'
-        ctx.fill()
-*/
-        ctx.beginPath();
-        ctx.arc(canvas.width/2, canvas.height/2, 50, 0, 2 * Math.PI);
-        ctx.fillStyle = 'pink'
         ctx.fill()
     }
     requestAnimationFrame(drawCameraIntoCanvas)
