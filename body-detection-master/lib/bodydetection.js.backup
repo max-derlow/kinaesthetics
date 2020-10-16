@@ -2,7 +2,6 @@ const detectionType = {
     singleBody: 'singleBody',
     multipleBodies:  'multipleBodies'
 }
-/*
 const bodyParts = { //pls fix
     nose:"nose",
     leftEye:"leftEye",
@@ -22,9 +21,9 @@ const bodyParts = { //pls fix
     leftAnkle: "leftAnkle",
     rightAnkle: "rightAnkle",
 };
-*/
 
-let bodyParts = { //pls fix
+/*
+const bodyParts = { //pls fix
     nose: {string:"nose", drawn:false},
  	leftEye: {string:"leftEye", drawn:false},
 	rightEye: {string:"rightEye", drawn:false},
@@ -43,7 +42,7 @@ let bodyParts = { //pls fix
 	leftAnkle: {string:"leftAnkle", drawn:false},
 	rightAnkle: {string:"rightAnkle", drawn:false}
 };
-
+*/
 const modelArchitecture = {
     MobileNetV1: "MobileNetV1",
     ResNet50: "ResNet50"
