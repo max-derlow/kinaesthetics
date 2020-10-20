@@ -61,13 +61,10 @@ function drawCameraIntoCanvas() {
         const sideTiltHeadLeft = nose.position.y - leftEar.position.y;
         const sideTiltHeadRight = nose.position.y - rightEar.position.y;
 
-        ellipseRadiusY = distanceBetweenShoulders;
-        ellipseRadiusY = Math.abs(ellipseRadiusY);
-        if(ellipseRadiusY <= cEllipseRadiusX + ellipseRadiusX){
-            ellipseRadiusY = (cEllipseRadiusX + ellipseRadiusX + 1)
-            }
-        }
-    //requestAnimationFrame(drawCameraIntoCanvas);
+        console.log(distanceBetweenShoulders);
+        baseLength = cBaseLength + distanceBetweenShoulders;
+    }
+    requestAnimationFrame(drawCameraIntoCanvas);
 }
 
 bodies.start();
