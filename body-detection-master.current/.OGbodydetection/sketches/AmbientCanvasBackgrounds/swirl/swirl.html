@@ -1,0 +1,898 @@
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>CanvasSwirl: An animated spirograph experiment in JavaScript and canvas by xhva.net</title>
+		<meta name="description" content="View and create pretty, animated spirograph-style effects and embed them on your site. Built using open web technologies such as JavaScript and canvas.">
+		<link type="text/css" rel="stylesheet" href="swirl.css">
+		<link type="text/css" rel="stylesheet" href="http://xhva.net/branding/branding.css">
+		<!-- analytics -->
+		<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-34801698-1']);
+		_gaq.push(['_trackPageview']);
+		
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+		</script>
+		<!-- /analytics -->
+		<script src="swirl_0.8.js"></script>
+		<script src="swirl_0.8_configs.js"></script>
+		<script>
+
+			(function() {
+
+				var fillFormFields = function(config) {
+					// step through all the form fields and fill their values in from the
+					// current configuration set.
+					var i, j, options, prop;
+
+					// inputs
+					var fields = document.querySelectorAll("#conf input");
+					for (i = 0; i < fields.length; i++) {
+						prop = fields[i].id.substr(5);
+						// if the id matches a config property, copy the value into the field
+						if (config[prop] !== undefined) {
+							fields[i].value = config[prop];
+						}
+					}
+
+					var fields = document.querySelectorAll("#conf select");
+					for (i = 0; i < fields.length; i++) {
+						prop = fields[i].id.substr(5);
+						// if the id matches a config property, select the correct option
+						// todo: do I need all this? does setting .value do it anyway?
+						if (config[prop] !== undefined)  {
+							var options = fields[i].querySelectorAll("option");
+							for (j = 0; j < options.length; j++) {
+								if (options[j].value == config[prop]) {
+									options[j].setAttribute("selected", "selected");
+									// chrome doesn't refresh the field until clicked
+									fields[i].value = options[j].value;
+								}
+								else {
+									options[j].removeAttribute("selected");
+								}
+							}
+						}
+					}
+
+					// todo: other field types
+
+					// special case: canvas width and height
+					document.querySelector("#canvas_width").value = swirl1.canvas.width;
+					document.querySelector("#canvas_height").value = swirl1.canvas.height;
+
+				};
+
+				var applyVal = function(e) {
+					var prop = this.id.substr(5);
+					e = e ? e : window.event;
+					swirl1.applyConfigProperty(prop, this.value);
+				}
+
+				var createFormFieldHandlers = function() {
+					// add onchange handlers to all form fields.
+					var i = 0;
+					var fields = document.querySelectorAll("#conf input, #conf select");
+					// todo: addEventListener blah
+					for (i = 0; i < fields.length; i++) fields[i].onchange = applyVal;
+
+					// special case: canvas width and height
+					var input_width =  document.querySelector("#canvas_width")
+					var input_height = document.querySelector("#canvas_height");
+
+					// apply handlers
+					input_width.onchange = input_height.onchange = function() {
+						var input_width =  document.querySelector("#canvas_width").value;
+						var input_height = document.querySelector("#canvas_height").value;
+						setCanvasSize(input_width, input_height);
+					};
+				}
+
+				var setCanvasSize = function(width, height) {
+					swirl1.canvas.width = width;
+					swirl1.canvas.height = height;
+					// reinitialise the current effect from its raw values
+					swirl1.applyConfig(swirl1.getCurrentConfigRaw());
+				};
+
+				var createMenuToggleButton = function() {
+					var button = document.createElement("button");
+					button.innerHTML = "&laquo;";
+					button.title = "Toggle configuration menu";
+					button.className = "menu_toggle";
+					document.querySelector("#menu").appendChild(button);
+					button.onclick = function(e) {
+						e = e ? e : window.event;
+						if (this.parentNode.id === "menu") {
+							document.querySelector("#wrap").appendChild(button);
+							document.querySelector("#menu").className = "menu_hidden";
+							this.innerHTML = "&raquo;";
+							document.getElementById("canvaswrap").className = "nomargin";
+						}
+						else {
+							document.querySelector("#menu").appendChild(button);
+							document.querySelector("#menu").className = "";
+							this.innerHTML = "&laquo;";
+							document.getElementById("canvaswrap").className = "margin";
+						}
+					}
+				};
+
+				var createEmbedCloseButton = function() {
+					var button = document.createElement("button");
+					button.innerHTML = "X";
+					button.title = "Close";
+					button.className = "close_button";
+					document.querySelector("#embed").appendChild(button);
+					button.onclick = function(e) {
+						e = e ? e : window.event;
+						this.parentNode.style.display = "none";
+					}
+				};
+
+				var buildEmbedCode = function() {
+					// fetch the current configuration, build the full script code
+					// necessary for embedding, and return it.
+					var code = [];
+					code[0] = "" +
+						"<scr" + "ipt type='text/javascript' src='swirl_0.8_min.js'></scr" + "ipt>\n" +
+						"<scr" + "ipt type='text/javascript'>\n" +
+						"	(function() {\n" + 
+						"		// CanvasSwirl 0.8 by Andrew Stibbard: http://xhva.net  http://jsswirl.com\n" +
+						"		var start = function() {\n" +
+						"			swirl1 = new CanvasSwirl(\n" +
+						"				document.getElementById('swirl1_surface'),\n" +
+						JSON.stringify(swirl1.getCurrentConfigRaw(), null, '\t').replace(/^/gm, "\t\t\t") + "\n" +
+						"			);\n" +
+						"		};\n" +
+						"		if (window.addEventListener) window.addEventListener('load', start, false);\n" +
+						"		else if (window.attachEvent) window.attachEvent('onload', start);\n" +
+						"	})();\n" +
+						"</scr" + "ipt>";
+					code[1] = "<canvas width='" + swirl1.canvas.width + "' height='" + swirl1.canvas.height + "' id='swirl1_surface'></canvas>";
+					return code;
+				};
+
+				var initEmbedButton = function() {
+					var embedButton = document.querySelector("#show_embed");
+					embedButton.onclick = function() {
+						var embed = document.querySelector("#embed");
+						if (!embed.style.display || embed.style.display == "none") {
+							var code = buildEmbedCode();
+							document.querySelector("#embed_script").value = code[0];
+							document.querySelector("#embed_canvas").value = code[1];
+							// show the embed window
+							embed.style.display = "block";
+						}
+						else {
+							embed.style.display = "none";
+						}
+					}
+				};
+
+				var initSaveConfigButton = function() {
+					var button = document.querySelector("#save_config");
+					if (!localStorage) {
+						button.disabled = true;
+						button.title = "Sorry, this feature is not available on your browser. Please upgrade to the latest Firefox, Chrome, Opera or Internet Explorer."
+						return false;
+					}
+					button.onclick = function() {
+						// todo: better dialogs
+						var accepted = false;
+						while (!accepted) {
+							var name = window.prompt("Name your new config:");
+							if (!name) {
+								// blank name entered or cancel pushed -- exit
+								return false;
+							}
+							else if (swirlConfigs[name] !== undefined) {
+								// name clash with existin config
+								alert("Sorry, that name is already in use. Please choose another.");
+							}
+							else {
+								accepted = true;
+							}
+						}
+						// fetch an "untranslated" copy of the current config
+						var currentConfig = swirl1.getCurrentConfigRaw();
+						// stringify and store it
+						// todo: nuke disallowed chars from name
+						localStorage["swirlConfig_" + name] = JSON.stringify(currentConfig, null, "\t");
+						// refresh the select box
+						updateConfigSelect(name);
+
+					}
+				};
+
+				var updateConfigSelect = function(optionToSelect) {
+					// create a select box from the config list
+					var
+						select = document.querySelector("#config_chooser"),
+						config,
+						optgroupStandard,
+						optgroupUser,
+						option,
+						options = [],
+						i = 0,
+						len;
+
+					// all of this crap is necessary because of IE not updating a <select>
+					// when its innerHTML is set. Setting innerHTML on an optgroup doesn't
+					// work properly either. Back to the verbose DOM functions we go.
+
+					// get the configurations from the config file
+					optgroupStandard = document.createElement("optgroup");
+					optgroupStandard.label = "Standard effects";
+					for (config in swirlConfigs) {
+						option = document.createElement("option");
+						option.value = config;
+						option.appendChild(document.createTextNode(config));
+						optgroupStandard.appendChild(option);
+					};
+
+					// get any configurations the user has saved in LocalStorage
+					if (localStorage) {
+						optgroupUser = document.createElement("optgroup");
+						optgroupUser.label = "Your effects";
+						// can't use for...in iterators on localStorage in FF3.6, so we'll
+						// use the key() access method instead.
+						len = localStorage.length;
+						for (i = 0; i < len; i++) {
+							config = localStorage.key(i);
+							// make sure it's a swirl config
+							if (config.substring(0, 12) !== "swirlConfig_") continue;
+							// create the new option, then add it to an array that we'll need
+							// later when building the list.
+							option = document.createElement("option");
+							option.value = config.substring(12);
+							option.appendChild(document.createTextNode(config.substring(12)));
+							options.push(option);
+						}
+							// note that localStorage seems to put new additions first in the
+							// object property index (or something like that). We want them in
+						// the order that the user added them, so we'll loop backwards 
+						// through the array we built and add them. This is a workaround for
+						// the fact that there's no prependChild() DOM method.
+						len = options.length;
+						while (len--) {
+							optgroupUser.appendChild(options[len]);
+						}
+					}
+
+					if (optgroupStandard.childNodes.length) {
+						select.appendChild(optgroupStandard);
+					}
+					if (optgroupUser.childNodes.length) {
+						select.appendChild(optgroupUser);
+					}
+
+					// optional parameter to select a new value
+					if (optionToSelect) {
+						select.value = optionToSelect;
+						changeConfig();
+					}
+
+				};
+				
+				var initFocusBorder = function() {
+					var w = document.querySelector("#canvas_width");
+					var h = document.querySelector("#canvas_height");
+					w.onfocus = h.onfocus = function() {
+						// Weird chrome bug: can't use a border or outline here because it
+						// causes a ghost image of the canvas to be left behind when the
+						// canvas is made smaller. Bug doesn't occur with boxShadow.
+						//swirl1.canvas.style.outline = "1px dotted red";
+						// ugly but shorter than the alternative
+						var style = swirl1.canvas.style;
+						style.boxShadow = style.mozBoxShadow = style.webkitBoxShadow = "0 0 1px white";
+					}
+					w.onblur = h.onblur = function() {
+						var style = swirl1.canvas.style;
+						style.boxShadow = style.mozBoxShadow = style.webkitBoxShadow = "none";
+					}
+				};
+
+				var changeConfig = function() {
+					var config;
+					var buttonDelete = document.querySelector("#config_delete");
+					var select = document.querySelector("#config_chooser");
+					if (swirlConfigs[select.value]) {
+						config = swirlConfigs[select.value];
+						// hide the delete button
+						buttonDelete.disabled = true;
+						buttonDelete.title = "Can't delete standard effects";
+					}
+					else if (localStorage && localStorage["swirlConfig_" + select.value]) {
+						config = JSON.parse(localStorage["swirlConfig_" + select.value]);
+						buttonDelete.disabled = false;
+						buttonDelete.title = "Delete the selected effect";
+					}
+					else {
+						// config missing? exit.
+						alert("Configuration can't be loaded.");
+						return false;
+					}
+					swirl1.applyConfig(config);
+					// reset any existing transition effects
+					swirl1.resetTransitionEffects();
+					// necessary because the selected config may inherit values from the
+					// default one.
+					// todo: fetch the default in fillFormFields instead, or pass it as
+					// a secondary param
+					fillFormFields(swirl1.getCurrentConfigRaw());
+				};
+
+				var start = function() {
+					document.querySelector("#config_chooser").onchange = changeConfig;
+
+					// update the delete button beside the select
+					var buttonDelete = document.querySelector("#config_delete");
+					buttonDelete.onclick = function() {
+						// get the selected item's name
+						var configName = document.querySelector("#config_chooser").value
+						if (confirm("Delete the effect '" + configName + "'?")) {
+							// nuke it from localStorage, reload the config list, and select
+							// the default again
+							localStorage.removeItem("swirlConfig_" + configName);
+							updateConfigSelect("Default");
+						}
+					}
+
+					var canvas = document.querySelector("#swirl_surface");
+
+					// spawn the object and apply the default
+					swirl1 = new CanvasSwirl(canvas, 60, swirlConfigs["Default"]);
+
+					updateConfigSelect("Default");
+
+					// fill the form fields with the values from the config
+					fillFormFields(swirl1.getCurrentConfigRaw());
+
+					// hook up change events
+					createFormFieldHandlers();
+
+					// create menu close and open button
+					createMenuToggleButton();
+
+					// set up the save button
+					initSaveConfigButton();
+
+					// set up embed window
+					initEmbedButton();
+					createEmbedCloseButton();
+					
+					// special case: outline on the canvas when the width or height
+					// input is focussed
+					initFocusBorder();
+					
+					// add click-to-pause
+					canvas.onclick = function() {
+						swirl1.paused = !swirl1.paused;
+					}
+					
+				};
+
+				if (window.addEventListener) {
+					window.addEventListener('load', start, false);
+				}
+				else if (window.attachEvent) {
+					window.attachEvent('onload', start);
+				}
+
+			})();
+
+		</script>
+	</head>
+
+	<body>
+
+		<div id="brandnav">
+			<a href="http://xhva.net">
+				<img src="http://xhva.net/favicon.png">
+				This is a xhva.net JavaScript experiment.
+			</a>
+			<ul>
+				<li>
+					<a href="">See more experiments...</a>
+					<ul>
+						<li>
+							<a href="http://jsrage.com">
+								<img src="http://xhva.net/branding/xsor.png">
+								<h2>JS Rage</h2>
+								<p>A JavaScript & canvas, in-progress clone of Streets of Rage from the Genesis/Mega drive.</p>
+								<span class="clear"></span>
+							</a>
+						</li>
+						<li>
+							<a href="http://jsswirl.com">
+								<img src="http://xhva.net/branding/swirl.jpg">
+								<h2>JS Swirl</h2>
+								<p>An animated, configurable, spirograph-style graphics generator that can be easily embedded into your site.</p>
+								<span class="clear"></span>
+							</a>
+						</li>
+						<!-- todo
+						<li>
+							<a href="">
+								<h2>JS Experiments</h2>
+								<p>The entire collection of JavaScript experiments developed by Andy</p>
+								<span class="clear"></span>
+							</a>
+						</li>
+						-->
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<div id="wrap">
+
+			<div id="menu">
+				<h1><span>Canvas</span>Swirl v0.8</h1>
+	
+				<h2>Choose an effect:</h2>
+				<select id="config_chooser"></select>
+				<button id="config_delete">X</button>
+	
+				<div id="conf">
+					<h2>Configure your effect</h2>
+					<p>Change a value then hit enter to apply it.</p>
+	
+					<!-- todo: change all these text inputs to range or pattern -->
+					<label class="range_first">
+						<span>Canvas width/height</span>
+						<input type="text" id="canvas_width">
+						<span class="description">
+							<b>Canvas width:</b><br><br>
+							A pixel value to use for the canvas width. Large dimensions may cause the framerate to drop.<br><br>
+							Note that a thin border is drawn around the canvas to show its dimensions while the width or height boxes are focussed.<br><br>
+							<i>(Positive integer)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Canvas height</span>
+						<input type="text" id="canvas_height">
+						<span class="description">
+							<b>Canvas height:</b><br><br>
+							A pixel value to use for the canvas height. Large dimensions may cause the framerate to drop.<br><br>
+							Note that a thin border is drawn around the canvas to show its dimensions while the width or height boxes are focussed.<br><br>
+							<i>(Positive integer)</i>
+						</span>
+					</label>
+	
+					<label>
+						<span>Number of points </span>
+						<input type="text" id="conf_count">
+						<span class="description">
+							<b>Count:</b><br><br>
+							The number of points to create. Large numbers may tax your computer and lower the framerate.<br><br>
+							<i>(Integer over 0)</i>
+						</span>
+					</label>
+	
+					<label>
+						<span>Shape</span>
+						<select id="conf_shape">
+							<option value="lines">Lines</option>
+							<option value="dots">Dots</option>
+							<option value="circles">Circles</option>
+							<option value="random">Random</option>
+						</select>
+						<span class="description">
+							<b>Shape:</b><br><br>
+							How points are drawn. Lines result in smooth, connected drawings while other shapes draw separately. Choosing 'random' results in a mix of shapes.
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Radius inner min/max</span>
+						<input type="text" id="conf_radiusInnerMin">
+						<span class="description">
+							<b>Minimum inner radius:</b><br><br>
+							A point can travel inwards and outwards. Each point is given a random inner radius that determines how close the point can get to the center before turning around, generated from a minimum and maximum. This is the minimum inner radius.<br><br>
+							<i>(Pixels or percentage of canvas width/height, whichever is larger)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Radius inner max</span>
+						<input type="text" id="conf_radiusInnerMax">
+						<span class="description">
+							<b>Maximum inner radius:</b><br><br>
+							A point can travel inwards and outwards. Each point is given a random inner radius that determines how close the point can get to the center before turning around, generated from a minimum and maximum. This is the maximum inner radius.<br><br>
+							<i>(Pixels or percentage of canvas width/height, whichever is larger)</i>
+						</span>
+					</label>
+					
+					<label class="range_first">
+						<span>Radius outer min/max</span>
+						<input type="text" id="conf_radiusOuterMin">
+						<span class="description">
+							<b>Minimum outer radius:</b><br><br>
+							A point can travel inwards and outwards. Each point is given a random outer radius that determines how far out the point can get before turning around, generated from a minimum and maximum. This is the minimum outer radius.<br><br>
+							<i>(Pixels or percentage of canvas width/height, whichever is larger)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Radius outer max</span>
+						<input type="text" id="conf_radiusOuterMax">
+						<span class="description">
+							<b>Maximum outer radius:</b><br><br>
+							A point can travel inwards and outwards. Each point is given a random outer radius that determines how far out the point can get before turning around, generated from a minimum and maximum. This is the maximum outer radius.<br><br>
+							<i>(Pixels or percentage of canvas width/height, whichever is larger)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Thickness min/max</span>
+						<input type="text" id="conf_thicknessMin">
+						<span class="description">
+							<b>Minimum thickness:</b><br><br>
+							The maximum thickness used when drawing lines, or the width & height when drawing boxes and circles.<br><br>
+							<i>(Positive decimal number)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Thickness max</span>
+						<input type="text" id="conf_thicknessMax">
+						<span class="description">
+							<b>Maximum thickness:</b><br><br>
+							The maximum thickness used when drawing lines, or the width & height when drawing boxes and circles.<br><br>
+							<i>(Positive decimal number)</i>
+						</span>
+					</label>
+	
+					<label>
+						<span>Fade time </span>
+						<input type="text" id="conf_fadeTime">
+						<span class="description">
+							<b>Fade time:</b><br><br>
+							The number of seconds over which to fade the effect. Using 0 results in clearing the canvas between each frame, whereas larger numbers give a "blur" effect. Fade times over 4 seconds cause visual artifacts due to limitations of the method used.<br><br>
+							<i>(Positive decimal number)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Rotation velocity min/max</span>
+						<input type="text" id="conf_rotationVelMin">
+						<span class="description">
+							<b>Minimum rotation velocity:</b><br><br>
+							How fast points revolve around the center of the circle. Each points is given a random value between the minimum and maximum. Negative values cause points to revolve counter-clockwise.<br><br>
+							<i>(Any decimal number, representing full revolutions per second divided by the framerate (60 fps by default))</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Rotation velocity max</span>
+						<input type="text" id="conf_rotationVelMax">
+						<span class="description">
+							<b>Maximum rotation velocity:</b><br><br>
+							How fast points revolve around the center of the circle. Each points is given a random value between the minimum and maximum. Negative values cause points to revolve counter-clockwise.<br><br>
+							<i>(Any decimal number, representing full revolutions per second divided by the framerate (60 fps by default))</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Origin X/Y</span>
+						<input type="text" id="conf_originX">
+						<span class="description">
+							<b>Origin X:</b><br><br>
+							The horizontal position of the circle that each point revolves around.<br><br>
+							<i>(Pixels, percentage of the canvas from the left-edge, or one of the special values "center", "left" or "right")</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Origin Y</span>
+						<input type="text" id="conf_originY">
+						<span class="description">
+							<b>Origin Y:</b><br><br>
+							The vertical position of the circle that each point revolves around.<br><br>
+							<i>(Pixels, percentage of the canvas from the top-edge, or one of the special values "center", "top" or "bottom")</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Origin X offset min/max</span>
+						<input type="text" id="conf_originXOffsetMin">
+						<span class="description">
+							<b>Minimum origin X offset:</b><br><br>
+							A random horizontal offset can be applied to the circle that each point revolves around. This is the minimum.<br><br>
+							<i>(Pixels or percentage of canvas width. Can be positive or negative)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Origin X offset max</span>
+						<input type="text" id="conf_originXOffsetMax">
+						<span class="description">
+							<b>Maximum origin X offset:</b><br><br>
+							A random horizontal offset can be applied to the circle that each point revolves around. This is the maximum.<br><br>
+							<i>(Pixels or percentage of canvas width. Can be positive or negative)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Origin Y offset min/max</span>
+						<input type="text" id="conf_originYOffsetMin">
+						<span class="description">
+							<b>Minimum origin Y offset:</b><br><br>
+							A random vertical offset can be applied to the circle that each point revolves around. This is the minimum.<br><br>
+							<i>(Pixels or percentage of canvas height. Can be positive or negative)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Origin Y offset max</span>
+						<input type="text" id="conf_originYOffsetMax">
+						<span class="description">
+							<b>Maximum origin Y offset:</b><br><br>
+							A random vertical offset can be applied to the circle that each point revolves around. This is the maximum.<br><br>
+							<i>(Pixels or percentage of canvas height. Can be positive or negative)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Distance Velocity min/max</span>
+						<input type="text" id="conf_distanceVelMin">
+						<span class="description">
+							<b>Minimum distance velocity:</b><br><br>
+							How fast a point travels from the center of the circle to the edge (and vice-versa). This is the minimum.<br><br>
+							<i>(Decimal, representing how many movements between the center and the edge per second, divided by the framerate (60 fps by default)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Distance Velocity max</span>
+						<input type="text" id="conf_distanceVelMax">
+						<span class="description">
+							<b>Maximum distance velocity:</b><br><br>
+							How fast a point travels from the center of the circle to the edge (and vice-versa). This is the maximum.<br><br>
+							<i>(Decimal, representing how many movements between the center and the edge per second, divided by the framerate (60 fps by default)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Distance Jitter min/max</span>
+						<input type="text" id="conf_distanceJitterMin">
+						<span class="description">
+							<b>Minimum distance jitter:</b><br><br>
+							The minimum amount to randomly add or substract from the point's distance each frame before drawing. This value is applied to the drawn result and will not change the point's true distance in any way.<br><br>
+							<i>(Decimal number)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Distance Jitter max</span>
+						<input type="text" id="conf_distanceJitterMax">
+						<span class="description">
+							<b>Maximum distance jitter:</b><br><br>
+							The maximum amount to randomly add or substract from the point's distance each frame before drawing. This value is applied to the drawn result and will not change the point's true distance in any way.<br><br>
+							<i>(Decimal number)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Rotation Jitter min/max</span>
+						<input type="text" id="conf_rotationJitterMin">
+						<span class="description">
+							<b>Minimum rotation jitter:</b><br><br>
+							The minimum amount to randomly add or substract from the point's rotation each frame before drawing. This value is applied to the drawn result and will not change the point's true rotation in any way.<br><br>
+							<i>(Decimal number)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Rotation Jitter max</span>
+						<input type="text" id="conf_rotationJitterMax">
+						<span class="description">
+							<b>Maximum rotation jitter:</b><br><br>
+							The maximum amount to randomly add or substract from the point's rotation each frame before drawing. This value is applied to the drawn result and will not change the point's true rotation in any way.<br><br>
+							<i>(Decimal number)</i>
+						</span>
+					</label>
+	
+					<!-- todo: redo these four as colour selector controls -->
+	
+					<label class="range_first">
+						<span>Hue min/max</span>
+						<input type="text" id="conf_hueMin">
+						<span class="description">
+							<b>Minimum hue:</b><br><br>
+							Points have a hue range to limit the colours used when drawing. This is the minimum hue to use for that range. Typically between 0 and 360; values over that will loop back around.<br><br>
+							<i>(Decimal number, rounded down to integer when used)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Hue max</span>
+						<input type="text" id="conf_hueMax">
+						<span class="description">
+							<b>Maximum hue:</b><br><br>
+							Points have a hue range to limit the colours used when drawing. This is the maximum hue to use for that range. Typically between 0 and 360; values over that will loop back around. You could specify a min of 340 and a max of 380 to get a range of purples to yellows.<br><br>
+							<i>(Decimal number, rounded down to integer when used)</i>
+						</span>
+					</label>
+	
+					<label>
+						<span>Hue increment per frame</span>
+						<input type="text" id="conf_hueIncrement">
+						<span class="description">
+							<b>Hue increment per frame:</b><br><br>
+							The amount to increase the point's hue by each time it's drawn. Small numbers (eg. 0.1 to 1) will create smooth gradients whereas large numbers result in visible steps. Negative values cause the hue to shift backwards.<br><br>
+							<i>(Decimal)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Saturation min/max</span>
+						<input type="text" id="conf_saturationMin">
+						<span class="description">
+							<b>Minimum saturation:</b><br><br>
+							Points have a saturation range to limit the colours used when drawing. This is the minimum to use for that range.<br><br>
+							<i>(Decimal percentage (% sign is optional)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Saturation max</span>
+						<input type="text" id="conf_saturationMax">
+						<span class="description">
+							<b>Maximum saturation:</b><br><br>
+							Points have a saturation range to limit the colours used when drawing. This is the maximum to use for that range.<br><br>
+							<i>(Decimal percentage (% sign is optional)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Lightness min/max</span>
+						<input type="text" id="conf_lightnessMin">
+						<span class="description">
+							<b>Minimum lightness:</b><br><br>
+							Points have a lightness range to limit the colours used when drawing. This is the minimum to use for that range.<br><br>
+							<i>(Decimal percentage (% sign is optional)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Lightness max</span>
+						<input type="text" id="conf_lightnessMax">
+						<span class="description">
+							<b>Maximum lightness:</b><br><br>
+							Points have a lightness range to limit the colours used when drawing. This is the maximum to use for that range.<br><br>
+							<i>(Decimal percentage (% sign is optional)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Opacity min/max</span>
+						<input type="text" id="conf_opacityMin">
+						<span class="description">
+							<b>Minimum opacity:</b><br><br>
+							Points have an opacity range to limit the colours used when drawing. This is the minimum to use for that range.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Opacity max</span>
+						<input type="text" id="conf_opacityMax">
+						<span class="description">
+							<b>Maximum opacity:</b><br><br>
+							Points have an opacity range to limit the colours used when drawing. This is the maximum to use for that range.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Saturation scale at center/edge</span>
+						<input type="text" id="conf_saturationScaleAtCenter">
+						<span class="description">
+							<b>Saturation scale at center:</b><br><br>
+							A point's saturation can be scaled up or down depending on how close it is to the center of the circle. While the scale is typically between 0 and 1, it can be higher than 1 to force a steeper gradient scale.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Saturation scale at edge</span>
+						<input type="text" id="conf_saturationScaleAtEdge">
+						<span class="description">
+							<b>Saturation scale at edge:</b><br><br>
+							A point's saturation can be scaled up or down depending on how close it is to the edge of the circle. While the scale is typically between 0 and 1, it can be higher than 1 to force a steeper gradient scale.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Lightness scale at center/edge</span>
+						<input type="text" id="conf_lightnessScaleAtCenter">
+						<span class="description">
+							<b>Lightness scale at center:</b><br><br>
+							A point's lightness can be scaled up or down depending on how close it is to the center of the circle. While the scale is typically between 0 and 1, it can be higher than 1 to force a steeper gradient scale.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Lightness scale at edge</span>
+						<input type="text" id="conf_lightnessScaleAtEdge">
+						<span class="description">
+							<b>Lightness scale at edge:</b><br><br>
+							A point's lightness can be scaled up or down depending on how close it is to the edge of the circle. While the scale is typically between 0 and 1, it can be higher than 1 to force a steeper gradient scale.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+	
+					<label class="range_first">
+						<span>Opacity scale at center/edge</span>
+						<input type="text" id="conf_opacityScaleAtCenter">
+						<span class="description">
+							<b>Opacity scale at center:</b><br><br>
+							A point's opacity can be scaled up or down depending on how close it is to the center of the circle. While the scale is typically between 0 and 1, it can be higher than 1 to force a steeper gradient scale.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+					<label class="range_second">
+						<span>Opacity scale at edge</span>
+						<input type="text" id="conf_opacityScaleAtEdge">
+						<span class="description">
+							<b>Opacity scale at edge:</b><br><br>
+							A point's opacity can be scaled up or down depending on how close it is to the edge of the circle. While the scale is typically between 0 and 1, it can be higher than 1 to force a steeper gradient scale.<br><br>
+							<i>(Decimal between 0 and 1)</i>
+						</span>
+					</label>
+	
+					<div class="clear"></div>
+	
+					<p>
+						<button id="save_config" title="Save the effect configuration to your local computer using HTML5 LocalStorage. It will be available in the effect list.">
+							Save your effect
+						</button>
+					</p>
+	
+					<p>
+						<button id="show_embed" title="Show the downloads and exact code necessary to embed this effect in your own HTML page.">
+						Embed this effect on your web site
+						</button>
+					</p>
+	
+				</div>
+				
+				<div class="clear"></div>
+	
+				<!--
+	
+	// todo: checkboxes
+	conf_opacityScaleIsRelative
+	conf_lightnessScaleIsRelative
+	conf_saturationScaleIsRelative
+	
+				-->
+	
+				<h2>Notes</h2>
+				<p>Questions? Comments? <a href="mailto:xhva.net@gmail.com">Email Andy!</a></p>
+				<p>Looks/runs best in Chrome or Opera as at 2011 09 07. Firefox currently leaves a pale outline as effects fade, resulting in colours looking slightly washed out.</p>
+				<p>Thanks to <a href="http://www.flickr.com/photos/nasos3/4442859384/">Nasos at Flickr CC</a> for the great background texture!</p>
+	
+			</div>
+	
+			<div id="canvaswrap" class="margin">
+				<canvas width="600" height="600" id="swirl_surface"></canvas>
+			</div>
+	
+			<div id="embed">
+				<h2>Three steps to embedding your effect on a web page</h2>
+				<ol>
+					<li>
+						<p>Save this file to the same folder as your HTML file:</p>
+						<p><a href="swirl_0.8_min.js" target="_blank">swirl_0.8_min.js</a> (8.4KB)</p>
+					</li>
+					<li>
+						<p>Paste this code into the &lt;head&gt; section of your HTML file:</p>
+						<p class="code"><textarea id="embed_script" readonly="readonly" class="large"></textarea></p>
+					</li>
+					<li>
+						<p>Paste this tag into your HTML file where you'd like the effect to appear:</p>
+						<p class="code"><textarea id="embed_canvas" readonly="readonly"></textarea></p>
+					</li>
+				</ol>
+				<p class="note"><strong>A performance tip:</strong> Your effect will perform best and consume less battery power on mobiles if you adjust the canvas' width and height to fit the effect before embedding.</p>
+			</div>
+		</div>
+
+	</body>
+</html>

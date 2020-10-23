@@ -1,0 +1,300 @@
+section, article, header, footer, nav, aside, details {
+	display: block;
+}
+
+#canvaswrap {
+	padding-top: 60px;
+}
+canvas {
+	display: block;
+	margin: auto;
+}
+body {
+	background: black;
+	background-position: center top;
+	qbackground-size: cover; /* can't use in chrome because it kills the canvas framerate. */
+	font-family: tahoma;
+	color: #cccccc;
+	margin: 0;
+}
+.margin {
+	margin-left: 230px;
+	-moz-transition-duration: .5s;
+	-webkit-transition-duration: .5s;
+	-o-transition-duration: .5s;
+	transition-duration: .5s;
+}
+.nomargin {
+	margin-left: 0;
+	-moz-transition-duration: .5s;
+	-webkit-transition-duration: .5s;
+	-o-transition-duration: .5s;
+	transition-duration: .5s;
+}
+#wrap {
+	position: relative;
+	font-size: .7em;
+}
+p {
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+a {
+	color: white;
+}
+h1 {
+	font-size: 2em;
+	text-shadow: 0 0 15px rgba(255, 255, 255, .75), 0 0 10px rgba(255, 0, 0, .25);
+	color: white;
+	margin-top: 0;
+}
+h1 span {
+	position: absolute;
+	left: -999em;
+}
+#wrap h2 {
+	font-weight: normal;
+	font-size: 1.4em;
+	margin-top: 2em;
+	color: white;
+}
+#menu {
+	width: 210px;
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	padding: 10px;
+	background: #666666;
+	background: rgba(255,210,210,.05);
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	-o-border-radius: 10px;
+	border-radius: 10px;
+	-moz-transition-duration: .5s;
+	-webkit-transition-duration: .5s;
+	-o-transition-duration: .5s;
+	transition-duration: .5s;
+}
+.menu_toggle {
+	background: none;
+	border: 0;
+	font-size: 28px;
+	position: absolute;
+	color: gray;
+	color: rgba(255, 255, 255, .3);
+	-moz-transition-duration: .5s;
+	-webkit-transition-duration: .5s;
+	-o-transition-duration: .5s;
+	transition-duration: .5s;
+}
+.menu_toggle:hover {
+	color: white;
+	color: rgba(255, 255, 255, 1);
+	-moz-transition-duration: .25s;
+	-webkit-transition-duration: .25s;
+	-o-transition-duration: .25s;
+	transition-duration: .25s;
+}
+#menu.menu_hidden {
+	left: -250px;
+	-moz-transition-duration: .5s;
+	-webkit-transition-duration: .5s;
+	-o-transition-duration: .5s;
+	transition-duration: .5s;
+}
+#menu > .menu_toggle {
+	top: 4px;
+	right: 10px;
+}
+#wrap > .menu_toggle {
+	top: 15px;
+	left: 20px;
+}
+
+/* generic form styles, used by the config select and delete */
+select {
+	font-size: 1em;
+}
+button {
+	font-size: .9em;
+	padding: .15em .2em;
+	line-height: 1em;
+	float: right;
+}
+
+.clear {
+	display: block;
+	clear: both;
+}
+
+/* configuration form controls */
+label {
+	float: left;
+	width: 210px;
+	margin: 0;
+	margin-bottom: 2px;
+	clear: both;
+}
+label:hover {
+	background: rgba(255,210,210,.05);
+}
+label > span:first-child {
+	float: left;
+	width: 130px;
+	line-height: 1.25em;
+	padding: .15em 0;
+}
+.description {
+	position: absolute;
+	left: -999em;
+	background: #666666;
+	background: rgba(255,210,210,.05);
+	padding: 10px;
+	width: 150px;
+	margin-top: -7px;
+}
+label:hover .description, label input:focus + .description, label select:focus + .description {
+	left: auto;
+	right: -170px;	
+}
+#conf input, #conf select {
+	float: right;
+	width: 68px;
+	margin: 0;
+	padding: .15em 1px;
+	font-size: 1em;
+	line-height: 1.25em;
+	height: 1.25em;
+	color: white;
+	background: white;
+	background: rgba(255, 255, 255, .1);
+	border: none;
+	border-bottom: 1px solid gray;
+	border-bottom: 1px solid rgba(255,255,255,.25);
+}
+#conf select {
+	border: none;
+	/* can't depend on select boxes to have the transparent colour (chrome) */
+	background: white;
+	color: black;
+	padding: 0;
+	height: 1.6em;
+	width: 70px;
+	font-weight: normal;
+}
+
+#conf label.range_first {
+	width: 174px;
+}
+#conf label.range_first input, #conf label.range_first select {
+	width: 32px;
+}
+#conf label.range_second {
+	width: 36px;
+	clear: none;
+}
+#conf label.range_second > span:first-child {
+	position: absolute;
+	left: -999em;
+}
+#conf label.range_second input, #conf label.range_second select {
+	width: 32px;
+}
+#conf button {
+	display: block;
+	float: left;
+	font-size: 1em;
+	padding: .2em .4em;
+	margin: 5px 0;
+}
+
+
+/* embedding code window */
+#embed {
+	display: none;
+	position: absolute;
+	left: 50%;
+	top: 100px;
+	margin-left: -310px;
+	width: 600px;
+	padding: 20px;
+	background: #46352B;
+	color: white;
+	border: 1px solid #776860;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	-o-border-radius: 10px;
+	border-radius: 10px;
+	box-shadow: 0 0 15px rgba(0, 0, 0, .4);
+	font-size: 1.2em;
+}
+#embed .close_button {
+	color: white;
+	border: 0;
+	font-size: 18px;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 5px;
+	background: #5F4E45;
+	border-radius: 0 9px 0 0;
+}
+#embed li {
+	padding: 4px 0;
+	font-size: 1.75em;
+}
+#embed li p {
+	font-size: .57em;
+}
+#embed h2 {
+	margin-top: 0;
+}
+#embed a {
+	padding-left: 20px;
+	font-size: 1em;
+}
+#embed .code {
+	padding: 10px;
+	border: 1px dotted #5F4E45;
+	margin: 20px;
+	max-height: 150px;
+}
+#embed textarea {
+	width: 100%;
+	color: white;
+	font-family: monospace;
+	font-size: 1em;
+	background: none;
+	border: none;
+	overflow: auto;
+	resize: none;
+	height: 1.5em;
+}
+#embed .large {
+	height: 130px;
+}
+.note {
+	padding: 10px;
+	background: #5F4E45;
+	color: white;
+	font-size: .9em;
+	margin-bottom: 0;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-o-border-radius: 3px;
+	border-radius: 3px;
+}
+.note:before {
+	content: "!";
+	-moz-transform: rotate(-10deg);
+	-webkit-transform: rotate(-10deg);
+	-o-transform: rotate(-10deg);
+	-ms-transform: rotate(-10deg);
+	transform: rotate(-10deg);
+	font-family: impact, haettenschweiler, "american typewriter";
+	font-size: 3.5em;
+	line-height: 1;
+	float: left;
+	padding-right: 12px;
+	margin-top: -.2em;
+}
