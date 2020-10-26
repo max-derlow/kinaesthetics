@@ -1,21 +1,22 @@
 'use strict';
 
-const particleCount = 500;
-const particlePropCount = 90;
+const particleCount = 700;
+const particlePropCount = 9;
 const particlePropsLength = particleCount * particlePropCount;
-const baseTTL = 100;
-const rangeTTL = 500;
-const baseSpeed = 5;
-const rangeSpeed = 1;
-const baseSize = 2;
-const rangeSize = 10;
-const baseHue = 10;
-const rangeHue = 10;
-const noiseSteps = 2;
-const xOff = 0.0025;
-const yOff = 0.005;
+const rangeY = 100;
+const baseTTL = 50;
+const rangeTTL = 150;
+const baseSpeed = 0.1;
+const rangeSpeed = 2;
+const baseRadius = 1;
+const rangeRadius = 4;
+const baseHue = 220;
+const rangeHue = 100;
+const noiseSteps = 8;
+const xOff = 0.00125;
+const yOff = 0.00125;
 const zOff = 0.0005;
-const backgroundColor = 'hsla(60,50%,3%,1)';
+const backgroundColor = 'hsla(260,40%,5%,1)';
 
 let container;
 let canvas;
@@ -23,6 +24,7 @@ let ctx;
 let center;
 let gradient;
 let tick;
+let simplex;
 let particleProps;
 let positions;
 let velocities;
@@ -33,13 +35,14 @@ let hues;
 
 function setup() {
 	createCanvas();
-    resize();
-    initParticles();
+  resize();
+  initParticles();
 	draw();
 }
 
 function initParticles() {
   tick = 0;
+  simplex = new SimplexNoise();
   particleProps = new Float32Array(particlePropsLength);
 
   let i;
@@ -50,20 +53,19 @@ function initParticles() {
 }
 
 function initParticle(i) {
-  let theta, x, y, vx, vy, life, ttl, speed, size, hue;
+  let x, y, vx, vy, life, ttl, speed, radius, hue;
 
   x = rand(canvas.a.width);
-  y = rand(canvas.a.height);
-  theta = angle(x, y, center[0], center[1]);
-  vx = cos(theta) * 1;
-  vy = sin(theta) * 1;
+  y = center[1] + randRange(rangeY);
+  vx = 0;
+  vy = 0;
   life = 0;
   ttl = baseTTL + rand(rangeTTL);
   speed = baseSpeed + rand(rangeSpeed);
-  size = baseSize + rand(rangeSize);
+  radius = baseRadius + rand(rangeRadius);
   hue = baseHue + rand(rangeHue);
 
-  particleProps.set([x, y, vx, vy, life, ttl, speed, size, hue], i);
+  particleProps.set([x, y, vx, vy, life, ttl, speed, radius, hue], i);
 }
 
 function drawParticles() {
@@ -76,23 +78,22 @@ function drawParticles() {
 
 function updateParticle(i) {
   let i2=1+i, i3=2+i, i4=3+i, i5=4+i, i6=5+i, i7=6+i, i8=7+i, i9=8+i;
-  let x, y, theta, vx, vy, life, ttl, speed, x2, y2, size, hue;
+  let n, x, y, vx, vy, life, ttl, speed, x2, y2, radius, hue;
 
   x = particleProps[i];
   y = particleProps[i2];
-  theta = angle(x, y, center[0], center[1]) + 0.75 * HALF_PI;
-  vx = lerp(particleProps[i3], 2 * cos(theta), 0.05);
-  vy = lerp(particleProps[i4], 2 * sin(theta), 0.05);
+  n = simplex.noise3D(x * xOff, y * yOff, tick * zOff) * noiseSteps * TAU;
+  vx = lerp(particleProps[i3], cos(n), 0.5);
+  vy = lerp(particleProps[i4], sin(n), 0.5);
   life = particleProps[i5];
   ttl = particleProps[i6];
-  //speed = 0.5; //ADJUST: THE SPEED/VELOCITY OF THE WHIRLWIND
   speed = particleProps[i7];
   x2 = x + vx * speed;
   y2 = y + vy * speed;
-  size = particleProps[i8];
+  radius = particleProps[i8];
   hue = particleProps[i9];
 
-  drawParticle(x, y, theta, life, ttl, size, hue);
+  drawParticle(x, y, x2, y2, life, ttl, radius, hue);
 
   life++;
 
@@ -102,25 +103,29 @@ function updateParticle(i) {
   particleProps[i4] = vy;
   particleProps[i5] = life;
 
-  life > ttl && initParticle(i);
+  (checkBounds(x, y) || life > ttl) && initParticle(i);
 }
 
-function drawParticle(x, y, theta, life, ttl, size, hue) {
-  let xRel = x - (0.5 * size), yRel = y - (0.5 * size);
-  
+function drawParticle(x, y, x2, y2, life, ttl, radius, hue) {
   ctx.a.save();
   ctx.a.lineCap = 'round';
-  ctx.a.lineWidth = 3;
+  ctx.a.lineWidth = radius;
   ctx.a.strokeStyle = `hsla(${hue},100%,60%,${fadeInOut(life, ttl)})`;
   ctx.a.beginPath();
-  ctx.a.translate(xRel, yRel); //ADJUST: THE X AND Y COORDINATES OF THE POOL
-  ctx.a.rotate(theta); //rotation of the individual components?
-  ctx.a.translate(-xRel, -yRel); //ADJUST: THE CENTER POINT SO IT BECOMES MORE DISPERSED
-  //ctx.a.strokeRect(xRel, yRel, size+50, size+50);
-  ctx.a.arc(xRel,yRel,size,0,2 * Math.PI); //ADJUST: CIRCLES OR SQUARES.
-  ctx.a.stroke();//ADJUST: CIRCLES OR SQUARES.//ADJUST: CIRCLES OR SQUARES.//ADJUST: CIRCLES OR SQUARES.
+  ctx.a.moveTo(x, y);
+  ctx.a.lineTo(x2, y2);
+  ctx.a.stroke()
   ctx.a.closePath();
   ctx.a.restore();
+}
+
+function checkBounds(x, y) {
+	return(
+		x > canvas.a.width ||
+		x < 0 ||
+		y > canvas.a.height ||
+		y < 0
+	);
 }
 
 function createCanvas() {
@@ -175,7 +180,7 @@ function renderGlow() {
   ctx.b.restore();
 }
 
-function render() {
+function renderToScreen() {
   ctx.b.save();
   ctx.b.globalCompositeOperation = 'lighter';
   ctx.b.drawImage(canvas.a, 0, 0);
@@ -191,8 +196,8 @@ function draw() {
   ctx.b.fillRect(0, 0, canvas.a.width, canvas.a.height);
 
   drawParticles();
-  //renderGlow();
-  render();
+  renderGlow();
+  renderToScreen();
 
 	window.requestAnimationFrame(draw);
 }

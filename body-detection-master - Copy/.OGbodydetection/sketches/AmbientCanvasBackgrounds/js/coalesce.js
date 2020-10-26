@@ -1,16 +1,16 @@
 'use strict';
 
-const particleCount = 500;
-const particlePropCount = 90;
+const particleCount = 700;
+const particlePropCount = 9;
 const particlePropsLength = particleCount * particlePropCount;
 const baseTTL = 100;
 const rangeTTL = 500;
-const baseSpeed = 5;
+const baseSpeed = 0.1;
 const rangeSpeed = 1;
 const baseSize = 2;
 const rangeSize = 10;
 const baseHue = 10;
-const rangeHue = 10;
+const rangeHue = 100;
 const noiseSteps = 2;
 const xOff = 0.0025;
 const yOff = 0.005;
@@ -33,8 +33,8 @@ let hues;
 
 function setup() {
 	createCanvas();
-    resize();
-    initParticles();
+  resize();
+  initParticles();
 	draw();
 }
 
@@ -55,8 +55,8 @@ function initParticle(i) {
   x = rand(canvas.a.width);
   y = rand(canvas.a.height);
   theta = angle(x, y, center[0], center[1]);
-  vx = cos(theta) * 1;
-  vy = sin(theta) * 1;
+  vx = cos(theta) * 6;
+  vy = sin(theta) * 6;
   life = 0;
   ttl = baseTTL + rand(rangeTTL);
   speed = baseSpeed + rand(rangeSpeed);
@@ -85,7 +85,6 @@ function updateParticle(i) {
   vy = lerp(particleProps[i4], 2 * sin(theta), 0.05);
   life = particleProps[i5];
   ttl = particleProps[i6];
-  //speed = 0.5; //ADJUST: THE SPEED/VELOCITY OF THE WHIRLWIND
   speed = particleProps[i7];
   x2 = x + vx * speed;
   y2 = y + vy * speed;
@@ -110,15 +109,13 @@ function drawParticle(x, y, theta, life, ttl, size, hue) {
   
   ctx.a.save();
   ctx.a.lineCap = 'round';
-  ctx.a.lineWidth = 3;
+  ctx.a.lineWidth = 1;
   ctx.a.strokeStyle = `hsla(${hue},100%,60%,${fadeInOut(life, ttl)})`;
   ctx.a.beginPath();
-  ctx.a.translate(xRel, yRel); //ADJUST: THE X AND Y COORDINATES OF THE POOL
-  ctx.a.rotate(theta); //rotation of the individual components?
-  ctx.a.translate(-xRel, -yRel); //ADJUST: THE CENTER POINT SO IT BECOMES MORE DISPERSED
-  //ctx.a.strokeRect(xRel, yRel, size+50, size+50);
-  ctx.a.arc(xRel,yRel,size,0,2 * Math.PI); //ADJUST: CIRCLES OR SQUARES.
-  ctx.a.stroke();//ADJUST: CIRCLES OR SQUARES.//ADJUST: CIRCLES OR SQUARES.//ADJUST: CIRCLES OR SQUARES.
+  ctx.a.translate(xRel, yRel);
+  ctx.a.rotate(theta);
+  ctx.a.translate(-xRel, -yRel);
+  ctx.a.strokeRect(xRel, yRel, size, size);
   ctx.a.closePath();
   ctx.a.restore();
 }
@@ -191,7 +188,7 @@ function draw() {
   ctx.b.fillRect(0, 0, canvas.a.width, canvas.a.height);
 
   drawParticles();
-  //renderGlow();
+  renderGlow();
   render();
 
 	window.requestAnimationFrame(draw);

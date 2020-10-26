@@ -7,7 +7,12 @@ const bodies = new BodyStream ({
 });
 
 let body;
-let buildSpeed = 0;
+let momentum = 0;
+let alignment = 0;
+let shoulderTwisted;
+let headTwist;
+let reseting = true;
+
 //This is the sheit that causes the lag
 bodies.addEventListener('bodiesDetected', (e) => {
     body = e.detail.bodies.getBodyAt(0);
@@ -63,18 +68,58 @@ function drawCameraIntoCanvas() {
 //.BBBBBBBBBBB..EEEEEEEEEEE.EHHH...HHHH.HHAA.....AAAA..VVVVVV...VVVI...IOOOOOOOOO...OOUUUUUUUU..UUUR....RRRR..RRSSSSSSSS..
 //.BBBBBBBBBB...EEEEEEEEEEE.EHHH...HHHHHHHAA.....AAAA..VVVVV....VVVI....OOOOOOO.......UUUUUUU...UUUR.....RRRR..RSSSSSS....
 //........................................................................................................................
-        console.log(distanceBetweenShoulders);
-        //baseLength = cBaseLength + (distanceBetweenShoulders*2);
 
-        if(distanceBetweenShoulders >= 1){
-            temp = (300 - distanceBetweenShoulders) / 100)
-            if(temp > 0.0001){speedModifier = temp}
-        } else if(Math.sign(distanceBetweenShoulder) === -1){
+        console.log(sideTiltHeadRight);
 
+        speedModifier = (300 - distanceBetweenShoulders)/100;
+
+        //Shoulders
+        if(distanceBetweenShoulders <= 130){
+            addMomentum();
+            speedModifier = speedModifier + momentum
+        } else if(distanceBetweenShoulders >= 131 && momentum >= 0){
+            decreaseMomentum();
+            speedModifier = speedModifier + momentum
         }
+
+        if(sideTiltHeadLeft <= - 15){
+            reseting = false;
+            leanLeft();
+        }
+        if(sideTiltHeadRight <= -15){
+            reseting = false;
+            leanRight();
+        }
+
+
 
     }
     requestAnimationFrame(drawCameraIntoCanvas);
+}
+
+function addMomentum(){
+    if(speedModifier + momentum >=5 ){return;}
+    momentum += 0.005;
+    //console.log("increasing momentum, current momentum: " + momentum)
+}
+
+function decreaseMomentum(){
+    momentum -= 0.005;
+    //console.log("decreasing momentum, current momentum: " + momentum)
+}
+
+function leanLeft(){
+    if(xPosModifier <= -500){return;}
+    console.log("Leaning left. Alignment: " + alignment);
+    alignment -= 0.01;
+    xPosModifier = xPosModifier + alignment;
+}
+
+function leanRight(){
+    if(xPosModifier >= 500){return;}
+    console.log("Leaning right. Alignment: " + alignment);
+    alignment += 0.01;
+    xPosModifier = xPosModifier + alignment;
 }
 
 bodies.start();

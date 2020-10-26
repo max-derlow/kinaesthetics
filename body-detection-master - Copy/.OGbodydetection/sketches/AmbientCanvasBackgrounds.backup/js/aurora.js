@@ -1,4 +1,12 @@
-'use strict';
+const worker = new Worker('worker.js');
+
+function listenToWorker(){
+  worker.addEventListener('message', function(e) {
+    console.log(e.data);
+  });
+  worker.postMessage('Happy Birthday ');
+}
+
 
 let rayCount = 100;
 let rayPropCount = 8;
@@ -6,8 +14,7 @@ let rayPropsLength = rayCount * rayPropCount;
 const cBaseLength = 50;
 let baseLength = 50;
 let rangeLength = 200;
-const cBaseSpeed = 0.00
-let baseSpeed = 0.05;;
+let baseSpeed = 0.05;
 let rangeSpeed = 0.1;
 let baseWidth = 10;
 let rangeWidth = 20;
@@ -176,8 +183,8 @@ function draw() {
   ctx.b.fillRect(0, 0, canvas.b.width, canvas.a.height);
   drawRays();
   render();
-
-	window.requestAnimationFrame(draw);
+  listenToWorker();
+  window.requestAnimationFrame(draw);
 }
 
 window.addEventListener('load', setup);

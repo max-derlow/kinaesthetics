@@ -1,19 +1,12 @@
-const worker = new Worker('../1.auroraExample.js', {type : "module"});
-import('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs');
-import('https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet');
-import('https://unpkg.com/@reactivex/rxjs@6.6.3/dist/global/rxjs.umd.js');
+const worker = new Worker('1.auroraExample.js');
 
-function communicateWithWorker(){
+function listenToWorker(){
   worker.addEventListener('message', function(e) {
-    baseLength = parseInt(e.data);
-    console.log("e.data retreived: " + e.data);
+    console.log(e.data);
   });
-  //worker.postMessage('Happy Birthday ');
-/*
-  setTimeout(function timer() {
-    keepRunning();
-  }, 5000);*/
+  worker.postMessage('Happy Birthday ');
 }
+
 
 let rayCount = 100;
 let rayPropCount = 8;
@@ -190,7 +183,7 @@ function draw() {
   ctx.b.fillRect(0, 0, canvas.b.width, canvas.a.height);
   drawRays();
   render();
-  communicateWithWorker();
+  listenToWorker();
   window.requestAnimationFrame(draw);
 }
 

@@ -1,13 +1,13 @@
 'use strict';
 
 const cParticleCount = 100;
-let particleCount = 700; // ADJUST: add higher particle count depending on intensity of twist
+let particleCount = 100; // ADJUST: add higher particle count depending on intensity of twist
 const particlePropCount = 9;
 let particlePropsLength = particleCount * particlePropCount;
 const baseTTL = 100;
 const rangeTTL = 500;
 const cBaseSpeed = 0.1;
-let baseSpeed = 3;
+let baseSpeed = 1;
 const rangeSpeed = 1;
 const baseSize = 50;
 const rangeSize = 0;
@@ -21,12 +21,16 @@ const backgroundColor = 'hsla(60,50%,3%,1)';
 
 let speedModifier = 0;
 let sizeModifier = 0;
-let hueModifier = 0;
+let hueModifier = 180;
 let xPosModifier = 0;
 let yPosModifier = 0;
 let xMidpointModifier = 0;
 let yMidpointModifier = 0;
 let lineWidthModifier = 0;
+let drawCircles = false;
+let drawTriangles = false;
+let drawJewels = false;
+let fillShape = false;
 
 let container;
 let canvas;
@@ -141,7 +145,30 @@ function drawParticle(x, y, theta, life, ttl, size, hue) {
   ctx.a.translate(xRel + xPosModifier, yRel + yPosModifier); // ADJUST change x and y positions on the canvas
   ctx.a.rotate(theta);
   ctx.a.translate(-xRel + xMidpointModifier, -yRel + yMidpointModifier); // ADJUST radius of the inner circle radius
-  ctx.a.strokeRect(xRel, yRel, size, size);
+
+  if(drawCircles){
+    ctx.a.arc(xRel, yRel, size/2, 0, 2 * Math.PI);
+    ctx.a.stroke();
+  } else if(drawTriangles) {
+    ctx.a.moveTo(xRel, yRel);
+    ctx.a.lineTo(xRel + size, yRel);
+    ctx.a.moveTo(xRel, yRel);
+    ctx.a.lineTo(xRel + (size/2), yRel + size);
+    ctx.a.lineTo(xRel + size, yRel);
+    ctx.a.stroke();
+  } else if(drawJewels){
+    ctx.a.moveTo(xRel, yRel);
+    ctx.a.lineTo(xRel - (size / 2), yRel - (size/2));
+    ctx.a.lineTo(xRel, yRel - size);
+    ctx.a.lineTo(xRel + size, yRel - size);
+    ctx.a.lineTo(xRel + size + (size/2),yRel - (size/2));
+    ctx.a.lineTo(xRel + size, yRel);
+    ctx.a.lineTo(xRel, yRel);
+    ctx.a.stroke();
+  } else {
+    ctx.a.strokeRect(xRel, yRel, size, size);
+  }
+
   ctx.a.closePath();
   ctx.a.restore();
 }
@@ -187,17 +214,17 @@ function resize() {
 	const { innerWidth, innerHeight } = window;
 	
 	canvas.a.width = innerWidth;
-  canvas.a.height = innerHeight;
+    canvas.a.height = innerHeight;
 
-  ctx.a.drawImage(canvas.b, 0, 0);
+    ctx.a.drawImage(canvas.b, 0, 0);
 
-	canvas.b.width = innerWidth;
-  canvas.b.height = innerHeight;
-  
-  ctx.b.drawImage(canvas.a, 0, 0);
+      canvas.b.width = innerWidth;
+    canvas.b.height = innerHeight;
 
-  center[0] = 0.5 * canvas.a.width;
-  center[1] = 0.5 * canvas.a.height;
+    ctx.b.drawImage(canvas.a, 0, 0);
+
+    center[0] = 0.5 * canvas.a.width;
+    center[1] = 0.5 * canvas.a.height;
 }
 
 function renderGlow() {
@@ -226,11 +253,11 @@ function draw() {
 
   ctx.a.clearRect(0, 0, canvas.a.width, canvas.a.height);
 
-  ctx.b.fillStyle = 'rgba(0, 0, 0, 0.1)'
+  ctx.b.fillStyle = 'rgba(0, 0, 0, 0.2)'
   ctx.b.fillRect(0, 0, canvas.a.width, canvas.a.height);
 
   drawParticles();
-  //renderGlow();
+  renderGlow();
   render();
 
 	window.requestAnimationFrame(draw);

@@ -161,7 +161,8 @@ class Body {
         const firstBodyPart = this.getBodyPart(first)
         const secondBodyPart = this.getBodyPart(second)
         if (firstBodyPart && secondBodyPart) {
-            return Math.hypot(firstBodyPart.position.x-secondBodyPart.position.x)
+            return Math.hypot(firstBodyPart.position.x-secondBodyPart.position.x, firstBodyPart.position.y-secondBodyPart.position.y)
+        } else {
             return 0
         }
     }

@@ -1,9 +1,15 @@
+self.addEventListener('message', function(e) {
+    let message = e.data + "to myself!";
+    self.postMessage(message);
+    console.log(message);
+});
+
 const bodies = new BodyStream ({
     posenet: posenet,
     architecture: modelArchitecture.ResNet50,
     detectionType: detectionType.singleBody,
     videoElement: document.getElementById('video'),
-    samplingRate: 250
+    samplingRate: 2500
 });
 
 let body;
@@ -31,7 +37,7 @@ let ellipseRadiusX;
 let ellipseRadiusY;
 let ellipseRotation;
 
-let baseLengthMessage;
+
 function drawCameraIntoCanvas() {
     console.log(ellipseRadiusY);
 
@@ -63,19 +69,10 @@ function drawCameraIntoCanvas() {
         const sideTiltHeadRight = nose.position.y - rightEar.position.y;
 
         console.log(distanceBetweenShoulders);
-        baseLengthMessage = 50 + distanceBetweenShoulders;
+        baseLength = cBaseLength + distanceBetweenShoulders;
     }
-    //requestAnimationFrame(drawCameraIntoCanvas);
+    requestAnimationFrame(drawCameraIntoCanvas);
 }
 
 bodies.start();
-
-let listening = true;
-self.importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs');
-self.importScripts('https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet');
-self.importScripts('https://unpkg.com/@reactivex/rxjs@6.6.3/dist/global/rxjs.umd.js');
-self.addEventListener('message', function(e) {
-    drawCameraIntoCanvas();
-    let message = baseLengthMessage;
-    self.postMessage(message);
-});
+drawCameraIntoCanvas();
